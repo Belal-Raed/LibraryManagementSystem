@@ -1,0 +1,86 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Add Review - E-Library{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'book_detail' id=book.id %}">{{ book.title|truncatewords:5
+                        }}</a></li>
+                <li class="breadcrumb-item active">Add Review</li>
+            </ol>
+        </nav>
+        <h1><i class="fas fa-star me-2"></i>Add Review</h1>
+    </div>
+</section>
+
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Book Info -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="img-fluid rounded">
+                                {% else %}
+                                <div class="book-placeholder-small"><i class="fas fa-book"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="col-9">
+                                <h4>{{ book.title }}</h4>
+                                <p class="text-muted">by {{ book.author.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Form -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">Your Review</h4>
+                        <form method="POST" action="{% url 'add_review' id=book.id %}">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"><i class="fas fa-star me-1"></i>Rating</label>
+                                <div class="star-rating-input">
+                                    {% for value, label in form.rating.field.choices %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input star-radio" type="radio" name="rating"
+                                            id="rating_{{ value }}" value="{{ value }}" {% if
+                                            form.rating.value|stringformat:"d"==value|stringformat:"d" %}checked{% endif
+                                            %}>
+                                        <label class="form-check-label star-label" for="rating_{{ value }}">
+                                            {{ value }} <i class="fas fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"><i class="fas fa-comment me-1"></i>Comment</label>
+                                {{ form.comment }}
+                                {% if form.comment.errors %}
+                                <div class="text-danger small">{{ form.comment.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Review
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

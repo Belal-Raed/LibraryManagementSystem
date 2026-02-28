@@ -1,0 +1,175 @@
+{% extends 'library/base.html' %}
+{% load static %}
+{% load library_filters %}
+
+{% block title %}E-Library - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Welcome to<br><span class="text-gradient">E-Library</span></h1>
+                <p class="hero-subtitle">Discover a world of knowledge. Browse thousands of books, borrow your
+                    favorites, and share your reviews with fellow readers.</p>
+                <div class="hero-buttons">
+                    <a href="{% url 'all_books' %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-book me-2"></i>Browse Books
+                    </a>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Join Now
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <div class="hero-image-wrapper">
+                    <i class="fas fa-book-reader hero-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                    <div class="stat-number" data-count="{{ total_books }}">{{ total_books }}</div>
+                    <div class="stat-label">Books</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-pen-nib"></i></div>
+                    <div class="stat-number" data-count="{{ total_authors }}">{{ total_authors }}</div>
+                    <div class="stat-label">Authors</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number" data-count="{{ total_students }}">{{ total_students }}</div>
+                    <div class="stat-label">Students</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Latest Books Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-clock me-2"></i>Recently Added</h2>
+            <a href="{% url 'all_books' %}" class="btn btn-outline-primary">View All <i
+                    class="fas fa-arrow-right ms-1"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for book in latest_books %}
+            <div class="col-lg-4 col-md-6">
+                <div class="book-card">
+                    <div class="book-card-image">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                        {% else %}
+                        <div class="book-placeholder"><i class="fas fa-book"></i></div>
+                        {% endif %}
+                        <div class="book-card-overlay">
+                            <a href="{% url 'book_detail' id=book.id %}" class="btn btn-light btn-sm">View Details</a>
+                        </div>
+                    </div>
+                    <div class="book-card-body">
+                        <h5 class="book-card-title">{{ book.title|truncatewords:6 }}</h5>
+                        <p class="book-card-author"><i class="fas fa-user me-1"></i>{{ book.author.name }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="book-card-category"><i class="fas fa-tag me-1"></i>{{ book.category.name }}</span>
+                            <div class="book-card-rating">
+                                {% with rating=book.average_rating %}
+                                {% for i in rating|star_range %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% for i in rating|empty_star_range %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="mt-2">{{ book|book_status }}</div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No books have been added yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Top Rated Books -->
+{% if top_rated_books %}
+<section class="section-padding bg-light-gradient">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-star me-2"></i>Top Rated</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            {% for book in top_rated_books %}
+            <div class="col-lg-4 col-md-6">
+                <div class="book-card featured">
+                    <div class="book-card-image">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                        {% else %}
+                        <div class="book-placeholder"><i class="fas fa-book"></i></div>
+                        {% endif %}
+                        <div class="book-card-overlay">
+                            <a href="{% url 'book_detail' id=book.id %}" class="btn btn-light btn-sm">View Details</a>
+                        </div>
+                        <div class="featured-badge"><i class="fas fa-trophy me-1"></i>Top Rated</div>
+                    </div>
+                    <div class="book-card-body">
+                        <h5 class="book-card-title">{{ book.title|truncatewords:6 }}</h5>
+                        <p class="book-card-author"><i class="fas fa-user me-1"></i>{{ book.author.name }}</p>
+                        <div class="book-card-rating">
+                            {% with rating=book.average_rating %}
+                            <span class="rating-number">{{ rating }}/5</span>
+                            {% for i in rating|star_range %}
+                            <i class="fas fa-star text-warning"></i>
+                            {% endfor %}
+                            {% for i in rating|empty_star_range %}
+                            <i class="far fa-star text-warning"></i>
+                            {% endfor %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+{% if not user.is_authenticated %}
+<section class="cta-section">
+    <div class="container text-center">
+        <h2 class="mb-3">Ready to Start Reading?</h2>
+        <p class="mb-4">Join our community of book lovers. Register now and start borrowing books today!</p>
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5">
+            <i class="fas fa-user-plus me-2"></i>Create Free Account
+        </a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - E-Library{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-user-edit me-2"></i>Edit Profile</h1>
+    </div>
+</section>
+
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{% url 'profile_edit' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                {{ form.full_name }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Phone Number</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Profile Picture</label>
+                                {% if profile.profile_picture %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.profile_picture.url }}" alt="Current photo" class="rounded"
+                                        style="max-width: 100px;">
+                                </div>
+                                {% endif %}
+                                {{ form.profile_picture }}
+                            </div>
+                            <hr>
+                            <h5 class="mb-3"><i class="fas fa-lock me-2"></i>Change Password (optional)</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">New Password</label>
+                                    {{ form.new_password }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Confirm New Password</label>
+                                    {{ form.confirm_new_password }}
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                                <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

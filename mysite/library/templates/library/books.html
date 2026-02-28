@@ -1,0 +1,125 @@
+{% extends 'library/base.html' %}
+{% load static %}
+{% load library_filters %}
+
+{% block title %}All Books - E-Library{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-book me-2"></i>All Books</h1>
+        <p class="text-muted">Browse our complete book collection</p>
+    </div>
+</section>
+
+<section class="section-padding">
+    <div class="container">
+        <!-- Search and Filter Bar -->
+        <div class="filter-bar mb-4">
+            <form method="GET" action="{% url 'all_books' %}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-search me-1"></i>Search</label>
+                    <input type="text" name="q" class="form-control" placeholder="Search by title or author..."
+                        value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-filter me-1"></i>Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if cat.is_selected %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-sort me-1"></i>Sort By</label>
+                    <select name="sort" class="form-select">
+                        <option value="newest" {% if sort_newest %}selected{% endif %}>Newest</option>
+                        <option value="oldest" {% if sort_oldest %}selected{% endif %}>Oldest</option>
+                        <option value="highest_rated" {% if sort_highest_rated %}selected{% endif %}>Highest Rated
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i
+                            class="fas fa-search me-1"></i>Search</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Books Grid -->
+        <div class="row g-4">
+            {% for book in page_obj %}
+            <div class="col-lg-4 col-md-6">
+                <div class="book-card">
+                    <div class="book-card-image">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                        {% else %}
+                        <div class="book-placeholder"><i class="fas fa-book"></i></div>
+                        {% endif %}
+                        <div class="book-card-overlay">
+                            <a href="{% url 'book_detail' id=book.id %}" class="btn btn-light btn-sm">View Details</a>
+                        </div>
+                    </div>
+                    <div class="book-card-body">
+                        <h5 class="book-card-title">{{ book.title|truncatewords:6 }}</h5>
+                        <p class="book-card-author"><i class="fas fa-user me-1"></i>{{ book.author.name }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="book-card-category"><i class="fas fa-tag me-1"></i>{{ book.category.name }}</span>
+                            <div class="book-card-rating">
+                                {% with rating=book.average_rating %}
+                                {% for i in rating|star_range %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% for i in rating|empty_star_range %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="mt-2">{{ book|book_status }}</div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No books found</h4>
+                <p class="text-muted">Try adjusting your search or filter criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link"
+                        href="?page={{ num }}&q={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

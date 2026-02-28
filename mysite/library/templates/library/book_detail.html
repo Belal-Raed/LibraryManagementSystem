@@ -1,0 +1,156 @@
+{% extends 'library/base.html' %}
+{% load static %}
+{% load library_filters %}
+
+{% block title %}{{ book.title }} - E-Library{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'all_books' %}">Books</a></li>
+                <li class="breadcrumb-item active">{{ book.title|truncatewords:5 }}</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<section class="section-padding">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Book Cover -->
+            <div class="col-lg-4 text-center">
+                <div class="book-detail-cover">
+                    {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="img-fluid rounded shadow">
+                    {% else %}
+                    <div class="book-placeholder-large"><i class="fas fa-book fa-5x"></i></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Book Info -->
+            <div class="col-lg-8">
+                <h1 class="mb-3">{{ book.title }}</h1>
+
+                <div class="book-meta mb-4">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>Author: <a href="{% url 'author_detail' id=book.author.id %}">{{ book.author.name }}</a></span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-tag"></i>
+                        <span>Category: {{ book.category.name }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Published: {{ book.publication_year }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Pages: {{ book.pages }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-language"></i>
+                        <span>Language: {{ book.language }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-copy"></i>
+                        <span>Available: {{ book.available_copies }} / {{ book.total_copies }} copies</span>
+                    </div>
+                </div>
+
+                <!-- Rating -->
+                <div class="book-rating-display mb-4">
+                    <div class="stars">
+                        {% with rating=book.average_rating %}
+                        {% for i in rating|star_range %}
+                        <i class="fas fa-star text-warning fa-lg"></i>
+                        {% endfor %}
+                        {% for i in rating|empty_star_range %}
+                        <i class="far fa-star text-warning fa-lg"></i>
+                        {% endfor %}
+                        <span class="ms-2 fw-bold">{{ rating }}/5</span>
+                        <span class="text-muted">({{ book.rating_count }} reviews)</span>
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-4">{{ book|book_status }}</div>
+
+                <!-- Description -->
+                <div class="book-description mb-4">
+                    <h4>Description</h4>
+                    <p>{{ book.description|default:"No description available." }}</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="book-actions">
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Borrow
+                    </a>
+                    {% else %}
+                    {% if user_currently_borrowed %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>This book is currently reserved by you.
+                    </div>
+                    {% elif book.is_available %}
+                    <a href="{% url 'borrow_book' book_id=book.id %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-hand-holding me-2"></i>Borrow Book
+                    </a>
+                    {% endif %}
+
+                    {% if user_has_borrowed and not user_has_reviewed %}
+                    <a href="{% url 'add_review' id=book.id %}" class="btn btn-outline-primary btn-lg ms-2">
+                        <i class="fas fa-star me-2"></i>Add Review
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section mt-5">
+            <h3 class="mb-4"><i class="fas fa-comments me-2"></i>Reviews ({{ reviews|length }})</h3>
+
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-user">
+                        {% if review.user.profile.profile_picture %}
+                        <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.get_full_name }}"
+                            class="review-avatar">
+                        {% else %}
+                        <div class="review-avatar-placeholder"><i class="fas fa-user"></i></div>
+                        {% endif %}
+                        <div>
+                            <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                            <div class="review-date text-muted">{{ review.created_at|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    <div class="review-stars">
+                        {% for i in review.rating|star_range %}
+                        <i class="fas fa-star text-warning"></i>
+                        {% endfor %}
+                        {% for i in review.rating|empty_star_range %}
+                        <i class="far fa-star text-warning"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="review-comment">{{ review.comment }}</p>
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <i class="fas fa-comment-slash fa-2x text-muted mb-2"></i>
+                <p class="text-muted">No reviews yet. Be the first to review this book!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
